@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct Landmark: Identifiable, Decodable {
     var id: Int
@@ -21,10 +22,15 @@ extension Landmark {
     }
 }
 
+enum NetworkErrors:Error {
+    case BadContent
+}
+
 class LandmarkMapper: ObservableObject {
     @Published var landmarks = [Landmark]()
+    var cancellable: AnyCancellable?
 
-    init() { load() }
+    init() { loadWithCombine() }
 
     func load() {
         guard let url = URL(string: "https://raw.githubusercontent.com/FinsiEnnes/SwiftUI/master/combine/intro/landmarkData.json") else { return }
@@ -38,6 +44,31 @@ class LandmarkMapper: ObservableObject {
                 print ("Error")
             }
         }.resume()
+    }
+
+    func loadWithCombine() {
+
+        guard let url = URL(string: "https://raw.githubusercontent.com/FinsiEnnes/SwiftUI/master/combine/intro/landmarkData.json") else { return }
+
+        cancellable = URLSession.shared
+        .dataTaskPublisher(for: url)
+        .tryMap {
+            guard let response = $1 as? HTTPURLResponse, response.statusCode == 200 else { throw NetworkErrors.BadContent }
+                return $0
+        }
+        .decode(type: [Landmark].self, decoder: JSONDecoder())
+        .receive(on: DispatchQueue.main)
+        .sink(receiveCompletion: { completion in
+               switch completion {
+                  case .failure(let failure):
+                   print("Error \(failure)")
+                  case .finished:
+                  print("Hecho")
+               }
+           }, receiveValue: {
+            self.landmarks = $0
+           })
+
     }
 }
 
