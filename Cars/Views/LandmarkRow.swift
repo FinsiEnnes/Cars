@@ -10,6 +10,7 @@ import Foundation
 
 import SwiftUI
 
+
 struct LandmarkRow: View {
     var landmark: Landmark
 
@@ -18,12 +19,14 @@ struct LandmarkRow: View {
             landmark.image
                 .resizable()
                 .frame(width: 50, height: 50)
-            VStack(alignment: .leading) {
-                Text(landmark.name).bold()
-                Text(landmark.state).font(.caption)
-            }.padding()
+            Text(landmark.name)
             Spacer()
         }
     }
 }
 
+struct LandmarkRow_Previews: PreviewProvider {
+    static var previews: some View {
+        LandmarkRow(landmark: landmarkData[0])
+    }
+}

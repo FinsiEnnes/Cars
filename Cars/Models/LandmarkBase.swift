@@ -9,14 +9,14 @@
 import SwiftUI
 import Combine
 
-struct Landmark: Identifiable, Decodable {
+struct LandmarkData: Identifiable, Decodable {
     var id: Int
     var name: String
     var imageName: String
     var state: String
 }
 
-extension Landmark {
+extension LandmarkData {
     var image: Image {
         ImageStore.shared.image(name: imageName)
     }
@@ -27,7 +27,7 @@ enum NetworkErrors:Error {
 }
 
 class LandmarkMapper: ObservableObject {
-    @Published var landmarks = [Landmark]()
+    @Published var landmarks = [LandmarkData]()
     var cancellable: AnyCancellable?
 
     init() { loadWithCombine() }
@@ -38,7 +38,7 @@ class LandmarkMapper: ObservableObject {
         URLSession.shared.dataTask(with: url) {(data,response,error) in
             do {
                 guard let d = data else { return }
-                let landmarks = try JSONDecoder().decode([Landmark].self, from: d)
+                let landmarks = try JSONDecoder().decode([LandmarkData].self, from: d)
                 DispatchQueue.main.async { self.landmarks = landmarks }
             } catch {
                 print ("Error")
@@ -56,7 +56,7 @@ class LandmarkMapper: ObservableObject {
             guard let response = $1 as? HTTPURLResponse, response.statusCode == 200 else { throw NetworkErrors.BadContent }
                 return $0
         }
-        .decode(type: [Landmark].self, decoder: JSONDecoder())
+        .decode(type: [LandmarkData].self, decoder: JSONDecoder())
         .receive(on: DispatchQueue.main)
         .sink(receiveCompletion: { completion in
                switch completion {
@@ -72,16 +72,16 @@ class LandmarkMapper: ObservableObject {
     }
 }
 
-struct FetchView: View {
-    @ObservedObject var mapper = LandmarkMapper()
-
-    var body: some View {
-        NavigationView {
-            List(mapper.landmarks) { landmark in
-                LandmarkRow(landmark: landmark)
-            }
-            .navigationBarTitle(Text("Landmarks"))
-        }
-    }
-}
+//struct FetchView: View {
+//    @ObservedObject var mapper = LandmarkMapper()
+//
+//    var body: some View {
+//        NavigationView {
+//            List(mapper.landmarks) { landmark in
+//                LandmarkRow(landmark: landmark)
+//            }
+//            .navigationBarTitle(Text("Landmarks"))
+//        }
+//    }
+//}
 
