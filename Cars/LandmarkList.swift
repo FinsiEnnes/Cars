@@ -11,11 +11,21 @@ import Foundation
 import SwiftUI
 
 struct LandmarkList: View {
+    @EnvironmentObject var userData: UserData
+
     var body: some View {
         NavigationView {
-            List(landmarkData) { landmark in
-                NavigationLink(destination: LandmarkDetail(landmark: landmark)) {
-                    LandmarkRow(landmark: landmark)
+            List {
+                Toggle(isOn: $userData.showFavorites) {
+                    Text("Favorites")
+                }
+
+                ForEach(userData.landmarks) { landmark in
+                    if !self.userData.showFavorites || landmark.isFavorite {
+                        NavigationLink(destination: LandmarkDetail(landmark: landmark)) {
+                            LandmarkRow(landmark: landmark)
+                        }
+                    }
                 }
             }
         .navigationBarTitle(Text("Landmarks"))
